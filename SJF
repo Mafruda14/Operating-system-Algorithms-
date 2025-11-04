@@ -1,0 +1,72 @@
+def mj():
+    n = int(input("number of processes: "))
+    processes = []
+    for i in range(n):
+        pid = input("Process ID: ")
+        arrival_time = int(input("Arrival Time: "))
+        burst_time = int(input("Burst Time: "))
+        processes.append([pid, arrival_time, burst_time, burst_time])
+
+    current_time = 0 # starts at 0 and advances as processes execute or when CPU is idle
+    completed = 0 #  counter for finished processes , if completed = n , all process done
+    waiting_times = [0] * n  #  stores waiting time for each process
+    turnaround_times = [0] * n
+    completion_times = [0] * n
+    is_completed = [False] * n # tracks completion status of each process , boolean list with length n, all initially False. True when process finishes execution
+    gantt_chart = []
+    while completed != n: #  loop runs as long as completed < n
+        min_burst = float('inf') # minimum burst time to infinity
+        min_index = -1
+
+        for i in range(n):  # the core SJF logic
+            if (processes[i][1] <= current_time and # Checks all processes that have arrived (arrival_time <= current_time)
+                    not is_completed[i] and
+                    processes[i][2] < min_burst):
+                min_burst = processes[i][2]
+                min_index = i
+
+        if min_index == -1: # CPU Idle handling
+            current_time += 1
+            continue  # If no process is available, increment time and continue.
+        pid, arrival, burst, remaining = processes[min_index]  # selected process runs to completion
+        start_time = current_time
+        completion_time = current_time + burst
+        completion_times[min_index] = completion_time
+        turnaround_times[min_index] = completion_time - arrival
+        waiting_times[min_index] = turnaround_times[min_index] - burst
+        gantt_chart.append((pid, start_time, completion_time))
+
+        print(f"Time {current_time}: Process {pid} starts execution (Burst: {burst})")
+        print(f"Time {completion_time}: Process {pid} completes")
+        print(f"  * Waiting Time: {waiting_times[min_index]}")
+        print(f"  * Turnaround Time: {turnaround_times[min_index]}")
+
+        current_time = completion_time
+        is_completed[min_index] = True
+        completed += 1 # increments completed counter
+
+    # Display results
+    print("GANTT CHART:")
+    for pid, start, end in gantt_chart:
+        print(f"[{start} - {pid} - {end}]", end=" ")
+    print()
+    # print("PID\tArrival\tBurst\tWaiting\tTurnaround")
+    print(f"┌──────┬─────────┬────────┬──────────┬─────────────┐")
+    print(f"│ PID  │ Arrival │ Burst  │ Waiting  │ Turnaround  │")
+    print(f"├──────┼─────────┼────────┼──────────┼─────────────┤")
+    total_waiting = 0
+    total_turnaround = 0
+    for i in range(n):
+        pid, arrival, burst, remaining = processes[i]
+        waiting = waiting_times[i]
+        turnaround = turnaround_times[i]
+        total_waiting += waiting
+        total_turnaround += turnaround
+        print(f"│ {pid:<4} │ {arrival:<7} │ {burst:<6} │ {waiting:<8} │ {turnaround:<11} │")
+    avg_waiting = total_waiting / n
+    avg_turnaround = total_turnaround / n
+    print(f"Average Waiting Time: {avg_waiting:.1f}")
+    print(f"Average Turnaround Time: {avg_turnaround:.1f}")
+
+
+mj()
