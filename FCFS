@@ -1,0 +1,55 @@
+def mj():
+    n = int(input("number of processes: "))
+    processes = []
+    for i in range(n):
+        pid = input("Process ID: ")
+        arrival_time = int(input("Arrival Time: "))
+        burst_time = int(input("Burst Time: "))
+        processes.append([pid, arrival_time, burst_time])
+    processes.sort(key=lambda x: x[1]) # x for each ele and x[1] returns the 2nd ele in list
+    current_time = 0
+    waiting_times = []
+    turnaround_times = []
+    gantt_chart = []
+    for i in range(n):
+        pid, arrival, burst = processes[i]
+        if current_time < arrival:
+            current_time = arrival
+        waiting_time = current_time - arrival
+        waiting_times.append(waiting_time)
+        completion_time = current_time + burst
+        turnaround_time = completion_time - arrival
+        turnaround_times.append(turnaround_time)
+        gantt_chart.append((pid, current_time, completion_time))
+
+        print(f"Time {current_time}: Process {pid} starts execution (Burst: {burst})")
+        print(f"Time {completion_time}: Process {pid} completes")
+        print(f"  * Waiting Time: {waiting_time}")
+        print(f"  * Turnaround Time: {turnaround_time}")
+
+        current_time = completion_time
+
+    print("GANTT CHART:")
+    for pid, start, end in gantt_chart:
+        print(f"[{start} - {pid} - {end}]", end=" ")
+    print()
+    print(f"┌──────┬─────────┬────────┬──────────┬─────────────┐")
+    print(f"│ PID  │ Arrival │ Burst  │ Waiting  │ Turnaround  │")
+    print(f"├──────┼─────────┼────────┼──────────┼─────────────┤")
+    total_waiting = 0
+    total_turnaround = 0
+    for i in range(n):
+        pid, arrival, burst = processes[i]
+        waiting = waiting_times[i]
+        turnaround = turnaround_times[i]
+        total_waiting += waiting
+        total_turnaround += turnaround
+        # print("PID\tArrival\tBurst\tWaiting\tTurnaround")
+        # print(f"{pid}\t{arrival}\t{burst}\t{waiting}\t{turnaround}")
+        print(f"│ {pid:<4} │ {arrival:<7} │ {burst:<6} │ {waiting:<8} │ {turnaround:<11} │")
+
+    avg_waiting = total_waiting / n
+    avg_turnaround = total_turnaround / n
+    print(f"Average Waiting Time: {avg_waiting:.1f}") # .1f means formatting floating-point and 1 decimal place
+    print(f"Average Turnaround Time: {avg_turnaround:.1f}")
+mj()
