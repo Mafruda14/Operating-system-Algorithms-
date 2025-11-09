@@ -1,0 +1,78 @@
+def mj():
+    n = int(input("number of processes: "))
+    time_quantum = int(input("time quantum: "))
+    processes = []
+    for i in range(n):
+        pid = input("Process ID: ")
+        arrival_time = int(input("Arrival Time: "))
+        burst_time = int(input("Burst Time: "))
+        processes.append([pid, arrival_time, burst_time])
+    current_time, completed = 0, 0 
+    waiting_times, turnaround_times, completion_times = [0]*n, [0]*n, [0]*n 
+    last_execution = [0] * n   #track last execution start time for each process
+    gantt_chart = []
+    ready_queue = []   #indices of ready processes
+
+    #ready queue with processes that arrive at time 0
+    for i in range(n):
+        if processes[i][1] == 0:  #processes that arrive at time 0 can start immediately
+            ready_queue.append(i)
+
+    while completed != n:  #runs until all processes are completed
+        if ready_queue:
+            #get next process from ready queue
+            current_process = ready_queue.pop(0)  #removes and returns the  ele from the list
+            pid, arrival, burst = processes[current_process]
+            execution_time = min(time_quantum, remaining)   #calculate execution time (minimum of time quantum and remaining burst)
+            start_time = current_time
+            processes[current_process][3] -= execution_time  #update remaining burst
+            current_time += execution_time
+            gantt_chart.append((pid, start_time, current_time))
+
+            print(
+                f"Time {start_time}: Process {pid} executes for {execution_time} units (Remaining: {processes[current_process][3]})")
+            if processes[current_process][3] == 0:
+                completion_times[current_process] = current_time
+                turnaround_times[current_process] = current_time - arrival
+                waiting_times[current_process] = turnaround_times[current_process] - burst 
+                completed += 1 # increments completed counter
+                print(f"Time {current_time}: Process {pid} COMPLETED")
+            else:
+                # process not completed, will be added back to ready queue
+                print(f"Time {current_time}: Process {pid} preempted (Remaining: {processes[current_process][3]})")
+
+            for i in range(n):  # add newly arrived processes to ready queue
+                if (processes[i][1] > start_time and
+                        processes[i][1] <= current_time and
+                        processes[i][3] > 0 and
+                        i not in ready_queue and
+                        i != current_process):
+                    ready_queue.append(i)
+            if processes[current_process][3] > 0:   # add current process back to ready queue if not completed
+                ready_queue.append(current_process)
+
+        else:
+            current_time += 1  # no process in ready queue, move time forward
+            for i in range(n):  # check for new arrivals
+                if processes[i][1] == current_time and processes[i][3] > 0:  
+                    ready_queue.append(i)
+
+
+    print("Gantt Chart:")
+    for pid, start, end in gantt_chart:
+        print(f"[{start} - {pid} - {end}]", end=" ")
+    print()
+    print("PID   A.T   B.T   W.T   T.A.T")
+    print("---   ----  ----  ----  -----")
+    total_waiting = 0
+    total_turnaround = 0
+    for i in range(n):
+        pid, arrival, burst = processes[i]
+        waiting = waiting_times[i]
+        turnaround = turnaround_times[i]
+        total_waiting += waiting
+        total_turnaround += turnaround
+        print(f"│ {pid:<2} │ {arrival:<3} │ {burst:<3} │ {waiting:<3} │ {turnaround:<6} │")  
+    print(f"Average Waiting Time: {total_waiting/n:.1f}")
+    print(f"Average Turnaround Time: {total_turnaround/n:.1f}")      
+mj()
